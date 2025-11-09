@@ -33,6 +33,7 @@ jobs:
           cache: 'pip'
 
       - name: Create .env for notebooks
+        working-directory: ${{ github.workspace }}
         run: |
           cat > .env <<'EOF'
           HOPSWORKS_API_KEY=AdD83z6aTRlRAEgHRLPflZi5XuzfydfZYHKc9zD1mHopQQyrqKHOMOUZN2qJxLW0
