@@ -36,7 +36,7 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           cat > .env <<'EOF'
-          HOPSWORKS_API_KEY=AdD83z6aTRlRAEgHRLPflZi5XuzfydfZYHKc9zD1mHopQQyrqKHOMOUZN2qJxLW0
+          HOPSWORKS_API_KEY=WHEGzZQDlW94iLTy.AdD83z6aTRlRAEgHRLPflZi5XuzfydfZYHKc9zD1mHopQQyrqKHOMOUZN2qJxLW0
           AQICN_API_KEY=09210bb7f0477fdc41b6471eea0d6563ce6d0b16
           AQICN_COUNTRY=sweden
           AQICN_CITY=stockholm
