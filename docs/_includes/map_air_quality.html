@@ -32,6 +32,31 @@
     border: 1px solid #cbd5e1;
     font-size: 0.9rem;
   }
+
+  /* NEW: simple layout for the images */
+  #aq-station-images {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  #aq-station-images figure {
+    margin: 0;
+    max-width: 100%;
+  }
+
+  #aq-station-images img {
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    display: block;
+  }
+
+  #aq-station-images figcaption {
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+  }
 </style>
 
 <h2>Monitoring Stations</h2>
@@ -52,6 +77,11 @@
   <p>Click on any marker or use the dropdown above.</p>
 </div>
 
+<!-- NEW: container for the PNGs -->
+<div id="aq-station-images">
+  <p>No station selected.</p>
+</div>
+
 <!-- Leaflet CSS & JS -->
 <link
   rel="stylesheet"
@@ -68,6 +98,10 @@
 <script>
   // Carga stations.json con fetch. Jekyll resolverá la URL correcta.
   const stationsUrl = '{{ "/stations.json" | relative_url }}';
+
+  // NEW: base path for images (folders 2850, 2855, etc.)
+  const imgBaseUrl = '{{ "/air-quality/assets/img" | relative_url }}';
+
   fetch(stationsUrl)
     .then((resp) => resp.json())
     .then((stations) => {
@@ -81,6 +115,7 @@
 
       const details = document.getElementById("aq-station-details");
       const select = document.getElementById("aq-station-select");
+      const images = document.getElementById("aq-station-images"); // NEW
       const markersByUid = {};
 
       function updateDetails(station) {
@@ -90,6 +125,29 @@
           <p><strong>City:</strong> ${station.city}, ${station.country}</p>
           <p><strong>UID:</strong> ${station.uid}</p>
           <p><a href="${station.url}" target="_blank">Open AQICN station page</a></p>
+        `;
+      }
+
+      // NEW: update images for a station
+      function updateImages(station) {
+        if (!station) {
+          images.innerHTML = "<p>No station selected.</p>";
+          return;
+        }
+
+        const folder = `${imgBaseUrl}/${station.uid}`;
+
+        images.innerHTML = `
+          <figure>
+            <img src="${folder}/pm25_forecast.png"
+                 alt="PM2.5 forecast for ${station.name}">
+            <figcaption>PM2.5 forecast</figcaption>
+          </figure>
+          <figure>
+            <img src="${folder}/pm25_hindcast_1day.png"
+                 alt="PM2.5 1-day hindcast for ${station.name}">
+            <figcaption>PM2.5 1-day hindcast</figcaption>
+          </figure>
         `;
       }
 
@@ -109,12 +167,14 @@
 
         marker.on("click", () => {
           updateDetails(s);
+          updateImages(s); // NEW
           select.value = String(s.uid);
         });
 
         // Selecciona el primero por defecto
         if (index === 0) {
           updateDetails(s);
+          updateImages(s); // NEW
           select.value = String(s.uid);
         }
       });
@@ -127,11 +187,13 @@
             <h3>No station selected</h3>
             <p>Click on any marker or use the dropdown above.</p>
           `;
+          updateImages(null); // NEW
           return;
         }
         const entry = markersByUid[uid];
         if (entry) {
           updateDetails(entry.station);
+          updateImages(entry.station); // NEW
           map.setView(entry.marker.getLatLng(), 13);
           entry.marker.openPopup();
         }
@@ -143,4 +205,3 @@
       details.innerHTML = "<p style='color:red;'>Error loading stations metadata.</p>";
     });
 </script>
-
