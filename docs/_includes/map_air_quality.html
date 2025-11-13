@@ -1,144 +1,211 @@
-<style>
-  #aq-map {
-    width: 100%;
-    height: 420px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    margin-bottom: 1rem;
-  }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monitoring Stations</title>
 
-  #aq-station-details {
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    font-size: 0.9rem;
-    margin-top: 0.75rem;
-  }
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
 
-  #aq-station-details h3 {
-    margin: 0 0 0.25rem 0;
-    font-size: 1rem;
-  }
+  <style>
+    #aq-map {
+      width: 100%;
+      height: 420px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      margin-bottom: 1rem;
+    }
 
-  #aq-station-details p {
-    margin: 0.15rem 0;
-  }
+    #aq-station-details {
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      font-size: 0.9rem;
+      margin-top: 0.75rem;
+    }
 
-  #aq-station-select {
-    margin: 0.5rem 0 0.75rem 0;
-    padding: 0.35rem 0.6rem;
-    border-radius: 4px;
-    border: 1px solid #cbd5e1;
-    font-size: 0.9rem;
-  }
-</style>
+    #aq-station-details h3 {
+      margin: 0 0 0.25rem 0;
+      font-size: 1rem;
+    }
 
-<h2>Monitoring Stations</h2>
-<p>
-  Interactive map of the air quality monitoring stations. Use the dropdown or click
-  on a marker to see details and open the live AQICN page.
-</p>
+    #aq-station-details p {
+      margin: 0.15rem 0;
+    }
 
-<label for="aq-station-select"><strong>Select station:</strong></label>
-<select id="aq-station-select">
-  <option value="">– Select –</option>
-</select>
+    #aq-station-select {
+      margin: 0.5rem 0 0.75rem 0;
+      padding: 0.35rem 0.6rem;
+      border-radius: 4px;
+      border: 1px solid #cbd5e1;
+      font-size: 0.9rem;
+    }
 
-<div id="aq-map"></div>
+    /* --- Custom markers --- */
+    .aq-marker {
+      background: transparent;
+      border: none;
+    }
 
-<div id="aq-station-details">
-  <h3>No station selected</h3>
-  <p>Click on any marker or use the dropdown above.</p>
-</div>
+    .aq-marker-inner {
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: #2563eb;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.4);
+      position: relative;
+      transform: translateY(-4px);
+    }
 
-<!-- Leaflet CSS & JS -->
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-  crossorigin=""
-/>
-<script
-  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-  crossorigin=""
-></script>
+    .aq-marker-inner::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 100%;
+      transform: translate(-50%, -2px);
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.35);
+    }
 
-<script>
-  // Carga stations.json con fetch. Jekyll resolverá la URL correcta.
-  fetch('{{ "/air-quality/docs/stations.json" | relative_url }}')
-    .then((resp) => resp.json())
-    .then((stations) => {
-      // Mapa centrado en Viena
-      const map = L.map("aq-map").setView([48.21, 16.37], 12);
+    .aq-marker--selected .aq-marker-inner {
+      background: #16a34a;
+    }
+  </style>
+</head>
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "&copy; OpenStreetMap contributors"
-      }).addTo(map);
+<body>
+  <h2>Monitoring Stations</h2>
+  <p>
+    Interactive map of the air quality monitoring stations. Click a marker or use the dropdown to see details.
+  </p>
 
-      const details = document.getElementById("aq-station-details");
-      const select = document.getElementById("aq-station-select");
-      const markersByUid = {};
+  <label for="aq-station-select"><strong>Select station:</strong></label>
+  <select id="aq-station-select">
+    <option value="">– Select –</option>
+  </select>
 
-      function updateDetails(station) {
-        details.innerHTML = `
-          <h3>${station.name}</h3>
-          <p><strong>Street:</strong> ${station.street}</p>
-          <p><strong>City:</strong> ${station.city}, ${station.country}</p>
-          <p><strong>UID:</strong> ${station.uid}</p>
-          <p><a href="${station.url}" target="_blank">Open AQICN station page</a></p>
-        `;
-      }
+  <div id="aq-map"></div>
 
-      // Rellena el dropdown
-      stations.forEach((s) => {
-        const opt = document.createElement("option");
-        opt.value = s.uid;
-        opt.textContent = `${s.name} (${s.city})`;
-        select.appendChild(opt);
-      });
+  <div id="aq-station-details">
+    <h3>No station selected</h3>
+    <p>Click a marker or use the dropdown.</p>
+  </div>
 
-      // Crea marcadores
-      stations.forEach((s, index) => {
-        const marker = L.marker([s.lat, s.lon]).addTo(map);
-        marker.bindPopup(`<strong>${s.name}</strong><br/>${s.street}`);
-        markersByUid[s.uid] = { marker, station: s };
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
 
-        marker.on("click", () => {
-          updateDetails(s);
-          select.value = String(s.uid);
+  <script>
+    fetch('{{ "/air-quality/docs/stations.json" | relative_url }}')
+      .then((resp) => resp.json())
+      .then((stations) => {
+        const map = L.map("aq-map").setView([48.21, 16.37], 12);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: "&copy; OpenStreetMap contributors"
+        }).addTo(map);
+
+        const select = document.getElementById("aq-station-select");
+        const details = document.getElementById("aq-station-details");
+        const markersByUid = {};
+
+        function updateDetails(station) {
+          details.innerHTML = `
+            <h3>${station.name}</h3>
+            <p><strong>Street:</strong> ${station.street}</p>
+            <p><strong>City:</strong> ${station.city}, ${station.country}</p>
+            <p><strong>UID:</strong> ${station.uid}</p>
+            <p><a href="${station.url}" target="_blank">Open AQICN station page</a></p>
+          `;
+        }
+
+        /* Custom marker icon */
+        const stationIcon = L.divIcon({
+          className: "aq-marker",
+          html: '<span class="aq-marker-inner"></span>',
+          iconSize: [24, 24],
+          iconAnchor: [12, 22],
+          popupAnchor: [0, -20]
         });
 
-        // Selecciona el primero por defecto
-        if (index === 0) {
-          updateDetails(s);
-          select.value = String(s.uid);
-        }
-      });
+        /* Fill dropdown */
+        stations.forEach((s) => {
+          const opt = document.createElement("option");
+          opt.value = s.uid;
+          opt.textContent = `${s.name} (${s.city})`;
+          select.appendChild(opt);
+        });
 
-      // Cuando el usuario cambia el select
-      select.addEventListener("change", (e) => {
-        const uid = Number(e.target.value);
-        if (!uid) {
-          details.innerHTML = `
-            <h3>No station selected</h3>
-            <p>Click on any marker or use the dropdown above.</p>
-          `;
-          return;
-        }
-        const entry = markersByUid[uid];
-        if (entry) {
-          updateDetails(entry.station);
-          map.setView(entry.marker.getLatLng(), 13);
-          entry.marker.openPopup();
-        }
+        /* Markers */
+        stations.forEach((s, index) => {
+          const marker = L.marker([s.lat, s.lon], { icon: stationIcon }).addTo(map);
+          marker.bindPopup(`<strong>${s.name}</strong><br/>${s.street}`);
+          markersByUid[s.uid] = { marker, station: s };
+
+          marker.on("click", () => {
+            updateDetails(s);
+            select.value = String(s.uid);
+
+            Object.values(markersByUid).forEach((e) => {
+              e.marker._icon?.classList?.remove("aq-marker--selected");
+            });
+            marker._icon?.classList?.add("aq-marker--selected");
+          });
+
+          if (index === 0) {
+            updateDetails(s);
+            select.value = String(s.uid);
+
+            marker.on("add", () => {
+              marker._icon?.classList?.add("aq-marker--selected");
+            });
+          }
+        });
+
+        /* Handle dropdown change */
+        select.addEventListener("change", (e) => {
+          const uid = Number(e.target.value);
+          if (!uid) {
+            details.innerHTML = `
+              <h3>No station selected</h3>
+              <p>Click a marker or use the dropdown.</p>
+            `;
+            return;
+          }
+
+          const entry = markersByUid[uid];
+          if (entry) {
+            updateDetails(entry.station);
+            map.setView(entry.marker.getLatLng(), 13);
+            entry.marker.openPopup();
+
+            Object.values(markersByUid).forEach((e) => {
+              e.marker._icon?.classList?.remove("aq-marker--selected");
+            });
+            entry.marker._icon?.classList?.add("aq-marker--selected");
+          }
+        });
+      })
+      .catch((err) => {
+        console.error("Error loading stations.json", err);
+        document.getElementById("aq-station-details").innerHTML =
+          "<p style='color:red;'>Error loading stations metadata.</p>";
       });
-    })
-    .catch((err) => {
-      console.error("Error loading stations.json", err);
-      const details = document.getElementById("aq-station-details");
-      details.innerHTML = "<p style='color:red;'>Error loading stations metadata.</p>";
-    });
-</script>
+  </script>
+</body>
+</html>
+
