@@ -1,170 +1,30 @@
-<style>
-  .aq-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-    gap: 1.5rem;
-    align-items: start;
-  }
-  #aq-map {
-    width: 100%;
-    height: 400px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-  }
-  .aq-panel {
-    background: #ffffff;
-    padding: 1rem 1.25rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  }
-  .aq-img {
-    width: 100%;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    margin-bottom: 0.75rem;
-  }
-  .aq-station-name {
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-  }
-  .aq-station-meta {
-    font-size: 0.85rem;
-    color: #64748b;
-    margin-bottom: 0.75rem;
-  }
-  @media (max-width: 900px) {
-    .aq-layout { grid-template-columns: 1fr; }
-  }
-</style>
 
-<div class="aq-layout">
-  <!-- Mapa -->
-  <div>
-    <h2>Monitoring Stations</h2>
-    <p>Click on a station to update the forecast and hindcast below.</p>
-    <div id="aq-map"></div>
-  </div>
+<section id="forecast">
+  <h2>PM2.5 Forecast</h2>
 
-  <!-- Panel de predicción que cambia según la estación -->
-  <div class="aq-panel">
-    <div id="aq-station-info">
-      <div class="aq-station-name" id="aq-station-name"></div>
-      <div class="aq-station-meta" id="aq-station-meta"></div>
-    </div>
+  <figure>
+    <img src="./assets/img/s1/pm25_forecast.png"
+         alt="PM2.5 forecast chart" style="max-width:100%; border-radius:6px;" />
+    <figcaption>Predicted PM2.5 levels for the next days.</figcaption>
+  </figure>
 
-    <figure>
-      <img id="aq-forecast-img"
-           class="aq-img"
-           src="./assets/img/2860/pm25_forecast.png"
-           alt="PM2.5 forecast">
-      <figcaption id="aq-forecast-caption">
-        PM2.5 forecast – station 2860
-      </figcaption>
-    </figure>
+  <p>
+    There is also a Python program to interact with the air quality ML system
+    using language (text, voice), powered by a
+    <a href="https://www.hopsworks.ai/dictionary/function-calling-with-llms" target="_blank">
+      function-calling LLM
+    </a>.
+  </p>
+</section>
 
-    <figure>
-      <img id="aq-hindcast-img"
-           class="aq-img"
-           src="./assets/img/2860/pm25_hindcast_1day.png"
-           alt="PM2.5 1-day hindcast">
-      <figcaption id="aq-hindcast-caption">
-        1-day hindcast – station 2860
-      </figcaption>
-    </figure>
-  </div>
-</div>
+<section id="model-performance">
+  <h2>Model Performance Monitoring</h2>
 
-<hr />
+  <p>1-Day Hindcast: Predictions vs Outcomes</p>
 
-<h2>About the model</h2>
-<p>
-  The forecasts use previous PM2.5 measurements, weather features and a
-  machine learning model. Plots are updated once per day.
-</p>
-<!-- Leaflet CSS & JS -->
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-  crossorigin=""
-/>
-<script
-  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-  crossorigin=""
-></script>
-
-<script>
-  // Lista de estaciones: adapta esto a tus datos reales
-  const stations = [
-    {
-      uid: 2860,
-      name: "Vienna – Ecke Taborstraße / Glockengasse",
-      lat: 48.216739,
-      lng: 16.380918,
-      folder: "s1",
-      city: "Vienna",
-      country: "Austria",
-      aqicn_url: "https://aqicn.org/station/@2860/"
-    },
-    {
-      uid: 10009,
-      name: "Stockholm – Hornsgatan 108",
-      lat: 59.3208,
-      lng: 18.0455,
-      folder: "s2",
-      city: "Stockholm",
-      country: "Sweden",
-      aqicn_url: "https://aqicn.org/station/@10009/"
-    }
-    // añade aquí más estaciones con su folder = nombre de carpeta
-  ];
-
-  function updatePanel(station) {
-    const forecastImg = document.getElementById("aq-forecast-img");
-    const hindcastImg = document.getElementById("aq-hindcast-img");
-    const stationName = document.getElementById("aq-station-name");
-    const stationMeta = document.getElementById("aq-station-meta");
-    const forecastCaption = document.getElementById("aq-forecast-caption");
-    const hindcastCaption = document.getElementById("aq-hindcast-caption");
-
-    const basePath = `./assets/img/${station.folder}`;
-
-    forecastImg.src = `${basePath}/pm25_forecast.png`;
-    hindcastImg.src = `${basePath}/pm25_hindcast_1day.png`;
-
-    stationName.textContent = station.name;
-    stationMeta.innerHTML = `${station.city}, ${station.country} · UID ${station.uid}
-      · <a href="${station.aqicn_url}" target="_blank">AQICN station</a>`;
-
-    forecastCaption.textContent = `PM2.5 forecast – station ${station.uid}`;
-    hindcastCaption.textContent = `1-day hindcast – station ${station.uid}`;
-  }
-
-  // Inicializar mapa (centro aproximado Europa del Norte)
-  const map = L.map("aq-map").setView([56.0, 15.0], 4);
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: "&copy; OpenStreetMap contributors"
-  }).addTo(map);
-
-  stations.forEach((s, index) => {
-    const marker = L.marker([s.lat, s.lng]).addTo(map);
-    marker.bindPopup(
-      `<strong>${s.name}</strong><br/>
-       ${s.city}, ${s.country}<br/>
-       <a href="${s.aqicn_url}" target="_blank">Open AQICN</a>`
-    );
-
-    marker.on("click", () => {
-      updatePanel(s);
-    });
-
-    // Usa la primera estación como seleccionada por defecto
-    if (index === 0) {
-      updatePanel(s);
-    }
-  });
-</script>
-
+  <figure>
+    <img src="./assets/img/s1/pm25_hindcast_1day.png"
+         alt="PM2.5 1-day hindcast chart" style="max-width:100%; border-radius:6px;" />
+    <figcaption>Comparison of predictions vs observed PM2.5 for the last day.</figcaption>
+  </figure>
+</section>
