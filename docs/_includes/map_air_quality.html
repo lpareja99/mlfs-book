@@ -100,7 +100,7 @@
   const stationsUrl = '{{ "/stations.json" | relative_url }}';
 
   // NEW: base path for images (folders 2850, 2855, etc.)
-  const imgBaseUrl = '{{ "/air-quality/assets/img" | relative_url }}';
+  const imgBaseUrl = "assets/img";
 
   fetch(stationsUrl)
     .then((resp) => resp.json())
