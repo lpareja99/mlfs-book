@@ -33,21 +33,22 @@
     font-size: 0.9rem;
   }
 
-  /* NEW: simple layout for the images */
   #aq-station-images {
     margin-top: 0.75rem;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap;    
     gap: 1rem;
   }
 
   #aq-station-images figure {
     margin: 0;
-    max-width: 100%;
+    flex: 1 1 0;      
+    min-width: 0;
   }
 
   #aq-station-images img {
-    max-width: 100%;
+    width: 100%;        
+    height: auto;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
     display: block;
