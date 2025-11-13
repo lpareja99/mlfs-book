@@ -1,0 +1,223 @@
+<!-- Leaflet CSS -->
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""
+/>
+
+<style>
+  #aq-map {
+    width: 100%;
+    height: 500px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    margin-bottom: 1.5rem;
+    z-index: 1;
+  }
+  
+  .station-info {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+  
+  .station-info h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+  }
+  
+  .station-info p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.95rem;
+  }
+  
+  .station-info a {
+    color: white;
+    text-decoration: underline;
+  }
+  
+  .charts-section {
+    margin-top: 2rem;
+  }
+  
+  .chart-container {
+    margin-bottom: 3rem;
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+  }
+  
+  .chart-container h3 {
+    color: #333;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+  }
+  
+  .chart-container img {
+    max-width: 100%;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    display: block;
+  }
+  
+  .chart-container figcaption {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 0.75rem;
+    font-style: italic;
+  }
+  
+  .no-selection {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #999;
+    font-size: 1.1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #ddd;
+  }
+  
+  .no-selection .icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+</style>
+
+<h2>Monitoring Stations</h2>
+<p>
+  Interactive map of air quality monitoring stations.
+  <strong>Click on a marker</strong> to view PM2.5 predictions and performance data for that station.
+</p>
+
+<div id="aq-map"></div>
+
+<div id="station-details">
+  <div class="no-selection">
+    <div class="icon">📍</div>
+    <div>Click on a station marker above to view its forecasts and performance data</div>
+  </div>
+</div>
+
+<!-- Leaflet JS -->
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
+
+<script>
+  // Configuration: List of stations with their data
+  const stations = [
+    {
+      uid: 2860,
+      name: "Ecke Taborstraße - Glockengasse",
+      city: "Vienna",
+      lat: 48.216739,
+      lng: 16.380918,
+      url: "https://aqicn.org/station/@2860/",
+      // Adjust these paths to match your Jekyll asset structure
+      forecastImg: "{{ site.baseurl }}/assets/img/s1/pm25_forecast.png",
+      hindcastImg: "{{ site.baseurl }}/assets/img/s1/pm25_hindcast_1day.png"
+    },
+    {
+      uid: 10009,
+      name: "Hornsgatan 108",
+      city: "Stockholm",
+      lat: 59.3208,
+      lng: 18.0455,
+      url: "https://aqicn.org/station/@10009/",
+      forecastImg: "{{ site.baseurl }}/assets/img/s2/pm25_forecast.png",
+      hindcastImg: "{{ site.baseurl }}/assets/img/s2/pm25_hindcast_1day.png"
+    }
+    // Add more stations as needed
+  ];
+
+  // Wait for both DOM and Leaflet to be ready
+  function initAirQualityMap() {
+    if (typeof L === 'undefined') {
+      setTimeout(initAirQualityMap, 100);
+      return;
+    }
+
+    // Initialize map centered between Vienna and Stockholm
+    const map = L.map("aq-map").setView([53.5, 12.5], 5);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+    }).addTo(map);
+
+    // Function to display station data
+    function showStationData(station) {
+      const detailsDiv = document.getElementById("station-details");
+      
+      detailsDiv.innerHTML = `
+        <div class="station-info">
+          <h3>${station.name}</h3>
+          <p><strong>City:</strong> ${station.city} | <strong>Station UID:</strong> ${station.uid} | 
+          <a href="${station.url}" target="_blank">View live data on AQICN →</a></p>
+        </div>
+        
+        <div class="charts-section">
+          <div class="chart-container">
+            <h3>📊 PM2.5 Forecast</h3>
+            <figure>
+              <img src="${station.forecastImg}" 
+                   alt="PM2.5 forecast for ${station.name}"
+                   onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'800\\' height=\\'400\\'%3E%3Crect width=\\'800\\' height=\\'400\\' fill=\\'%23f0f0f0\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' font-family=\\'Arial\\' font-size=\\'18\\' fill=\\'%23999\\'%3EForecast image not available%3C/text%3E%3C/svg%3E'" />
+              <figcaption>Predicted PM2.5 levels for the next days at ${station.name}</figcaption>
+            </figure>
+          </div>
+          
+          <div class="chart-container">
+            <h3>🎯 Model Performance - 1-Day Hindcast</h3>
+            <figure>
+              <img src="${station.hindcastImg}" 
+                   alt="PM2.5 hindcast for ${station.name}"
+                   onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'800\\' height=\\'400\\'%3E%3Crect width=\\'800\\' height=\\'400\\' fill=\\'%23f0f0f0\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' font-family=\\'Arial\\' font-size=\\'18\\' fill=\\'%23999\\'%3EHindcast image not available%3C/text%3E%3C/svg%3E'" />
+              <figcaption>Comparison of predictions vs observed PM2.5 for ${station.name}</figcaption>
+            </figure>
+          </div>
+        </div>
+      `;
+      
+      // Smooth scroll to the details section
+      detailsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Add markers for each station
+    stations.forEach((station) => {
+      const marker = L.marker([station.lat, station.lng]).addTo(map);
+      
+      marker.bindPopup(
+        `<strong>${station.name}</strong><br/>
+         ${station.city}<br/>
+         <small>UID: ${station.uid}</small><br/>
+         <em style="color: #667eea;">Click to view forecasts ↓</em>`
+      );
+      
+      // Click event to show station data
+      marker.on('click', () => {
+        showStationData(station);
+      });
+    });
+
+    // Force map to resize properly
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAirQualityMap);
+  } else {
+    initAirQualityMap();
+  }
+</script>
