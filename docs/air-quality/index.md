@@ -1,6 +1,5 @@
 # Air Quality Dashboard
 
-# ![Hopsworks Logo](../titanic/assets/img/logo.png)
 
 {% include air-quality.html %}
 
