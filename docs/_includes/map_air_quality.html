@@ -67,7 +67,7 @@
 
 <script>
   // Carga stations.json con fetch. Jekyll resolverá la URL correcta.
-  fetch('{{ "/air-quality/docs/stations.json" | relative_url }}')
+  fetch('{{ "/docs/stations.json" | relative_url }}')
     .then((resp) => resp.json())
     .then((stations) => {
       // Mapa centrado en Viena
