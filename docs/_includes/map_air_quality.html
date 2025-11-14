@@ -1,20 +1,87 @@
 <style>
   #aq-map {
     width: 100%;
-    height: 400px;
+    height: 420px;
     border-radius: 8px;
     border: 1px solid #ddd;
     margin-bottom: 1rem;
+  }
+
+  #aq-station-details {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    font-size: 0.9rem;
+    margin-top: 0.75rem;
+  }
+
+  #aq-station-details h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+  }
+
+  #aq-station-details p {
+    margin: 0.15rem 0;
+  }
+
+  #aq-station-select {
+    margin: 0.5rem 0 0.75rem 0;
+    padding: 0.35rem 0.6rem;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.9rem;
+  }
+
+  #aq-station-images {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;    
+    gap: 1rem;
+  }
+
+  #aq-station-images figure {
+    margin: 0;
+    flex: 1 1 0;      
+    min-width: 0;
+  }
+
+  #aq-station-images img {
+    width: 100%;        
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    display: block;
+  }
+
+  #aq-station-images figcaption {
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
   }
 </style>
 
 <h2>Monitoring Stations</h2>
 <p>
-  Interactive map of the air quality monitoring stations.
-  Click on a marker to open the live AQICN page.
+  Interactive map of the air quality monitoring stations. Use the dropdown or click
+  on a marker to see details and open the live AQICN page.
 </p>
 
+<label for="aq-station-select"><strong>Select station:</strong></label>
+<select id="aq-station-select">
+  <option value="">– Select –</option>
+</select>
+
 <div id="aq-map"></div>
+
+<div id="aq-station-details">
+  <h3>No station selected</h3>
+  <p>Click on any marker or use the dropdown above.</p>
+</div>
+
+<!-- NEW: container for the PNGs -->
+<div id="aq-station-images">
+  <p>No station selected.</p>
+</div>
 
 <!-- Leaflet CSS & JS -->
 <link
@@ -30,39 +97,112 @@
 ></script>
 
 <script>
-  // List of stations – adjust to your real list
-  const stations = [
-    {
-      uid: 2860,
-      name: "Ecke Taborstraße - Glockengasse",
-      lat: 48.216739,
-      lng: 16.380918,
-      url: "https://aqicn.org/station/@2860/"
-    },
-    {
-      uid: 10009,
-      name: "Stockholm, Hornsgatan 108",
-      lat: 59.3208,
-      lng: 18.0455,
-      url: "https://aqicn.org/station/@10009/"
-    }
-    // añade el resto si quieres
-  ];
+  // Carga stations.json con fetch. Jekyll resolverá la URL correcta.
+  const stationsUrl = '{{ "/stations.json" | relative_url }}';
 
-  // Center map roughly between Vienna & Stockholm (cámbialo si quieres solo una ciudad)
-  const map = L.map("aq-map").setView([56.0, 15.0], 4);
+  // NEW: base path for images (folders 2850, 2855, etc.)
+  const imgBaseUrl = "assets/img";
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: "&copy; OpenStreetMap contributors"
-  }).addTo(map);
+  fetch(stationsUrl)
+    .then((resp) => resp.json())
+    .then((stations) => {
+      // Mapa centrado en Viena
+      const map = L.map("aq-map").setView([48.21, 16.37], 12);
 
-  stations.forEach((s) => {
-    const marker = L.marker([s.lat, s.lng]).addTo(map);
-    marker.bindPopup(
-      `<strong>${s.name}</strong><br/>
-       UID: ${s.uid}<br/>
-       <a href="${s.url}" target="_blank">Open AQICN station</a>`
-    );
-  });
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors"
+      }).addTo(map);
+
+      const details = document.getElementById("aq-station-details");
+      const select = document.getElementById("aq-station-select");
+      const images = document.getElementById("aq-station-images"); // NEW
+      const markersByUid = {};
+
+      function updateDetails(station) {
+        details.innerHTML = `
+          <h3>${station.name}</h3>
+          <p><strong>Street:</strong> ${station.street}</p>
+          <p><strong>City:</strong> ${station.city}, ${station.country}</p>
+          <p><strong>UID:</strong> ${station.uid}</p>
+          <p><a href="${station.url}" target="_blank">Open AQICN station page</a></p>
+        `;
+      }
+
+      // NEW: update images for a station
+      function updateImages(station) {
+        if (!station) {
+          images.innerHTML = "<p>No station selected.</p>";
+          return;
+        }
+
+        const folder = `${imgBaseUrl}/${station.uid}`;
+
+        images.innerHTML = `
+          <figure>
+            <img src="${folder}/pm25_forecast.png"
+                 alt="PM2.5 forecast for ${station.name}">
+            <figcaption>PM2.5 forecast</figcaption>
+          </figure>
+          <figure>
+            <img src="${folder}/pm25_hindcast_1day.png"
+                 alt="PM2.5 1-day hindcast for ${station.name}">
+            <figcaption>PM2.5 1-day hindcast</figcaption>
+          </figure>
+        `;
+      }
+
+      // Rellena el dropdown
+      stations.forEach((s) => {
+        const opt = document.createElement("option");
+        opt.value = s.uid;
+        opt.textContent = `${s.name} (${s.city})`;
+        select.appendChild(opt);
+      });
+
+      // Crea marcadores
+      stations.forEach((s, index) => {
+        const marker = L.marker([s.lat, s.lon]).addTo(map);
+        marker.bindPopup(`<strong>${s.name}</strong><br/>${s.street}`);
+        markersByUid[s.uid] = { marker, station: s };
+
+        marker.on("click", () => {
+          updateDetails(s);
+          updateImages(s); // NEW
+          select.value = String(s.uid);
+        });
+
+        // Selecciona el primero por defecto
+        if (index === 0) {
+          updateDetails(s);
+          updateImages(s); // NEW
+          select.value = String(s.uid);
+        }
+      });
+
+      // Cuando el usuario cambia el select
+      select.addEventListener("change", (e) => {
+        const uid = Number(e.target.value);
+        if (!uid) {
+          details.innerHTML = `
+            <h3>No station selected</h3>
+            <p>Click on any marker or use the dropdown above.</p>
+          `;
+          updateImages(null); // NEW
+          return;
+        }
+        const entry = markersByUid[uid];
+        if (entry) {
+          updateDetails(entry.station);
+          updateImages(entry.station); // NEW
+          map.setView(entry.marker.getLatLng(), 13);
+          entry.marker.openPopup();
+        }
+      });
+    })
+    .catch((err) => {
+      console.error("Error loading stations.json", err);
+      const details = document.getElementById("aq-station-details");
+      details.innerHTML = "<p style='color:red;'>Error loading stations metadata.</p>";
+    });
 </script>
