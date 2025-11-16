@@ -288,12 +288,15 @@
 
       function updateDetails(station) {
         details.innerHTML = `
-          <h3>${station.name}</h3>
-          <p><strong>Street:</strong> ${station.street}</p>
-          <p><strong>City:</strong> ${station.city}, ${station.country}</p>
-          <p><strong>UID:</strong> ${station.uid}</p>
-          <p><a href="${station.url}" target="_blank">Open AQICN station page</a></p>
-        `;
+        <h3>
+          ${station.name}
+          <span class="aqi-badge aqi-good">Good AQI</span>
+        </h3>
+        <p><strong>Location:</strong> ${station.street}, ${station.city}, ${station.country}</p>
+        <p><strong>Coordinates:</strong> ${station.lat.toFixed(4)}°N, ${station.lon.toFixed(4)}°E</p>
+        <p><strong>Station ID:</strong> ${station.uid}</p>
+        <a href="${station.url}" target="_blank" rel="noopener">📊 View Live Data on AQICN</a>
+      `;
       }
 
       // NEW: update images for a station
