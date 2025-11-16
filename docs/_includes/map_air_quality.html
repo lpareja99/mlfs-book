@@ -154,8 +154,6 @@
     width: 100%;
     height: auto;
     display: block;
-    opacity: 0;
-    transition: opacity 0.3s;
   }
 
   #aq-station-images figcaption {
@@ -212,16 +210,20 @@
   }
 </style>
 
-<h2>Monitoring Stations</h2>
-<p>
+<h2>🌍 Air Quality Monitoring Dashboard</h2>
+<p class="subtitle">
   Interactive map of the air quality monitoring stations. Use the dropdown or click
   on a marker to see details and open the live AQICN page.
 </p>
 
-<label for="aq-station-select"><strong>Select station:</strong></label>
-<select id="aq-station-select">
-  <option value="">– Select –</option>
-</select>
+<div class="controls">
+  <div class="control-group">
+    <label for="aq-station-select">Select Monitoring Station</label>
+    <select id="aq-station-select">
+      <option value="">— Choose a station —</option>
+    </select>
+  </div>
+</div>
 
 <div id="aq-map"></div>
 
