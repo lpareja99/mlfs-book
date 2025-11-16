@@ -5,7 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dc098b12-59de-406c-8172-7ab7eb5f4b46" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/notebooks/airquality/7.Multiple_sensors.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/airquality/7.Multiple_sensors.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/air-quality-scaled-final.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/air-quality-scaled-final.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/airquality/1_scale_air_quality_feature_backfill_all_stations.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/airquality/1_scale_air_quality_feature_backfill_all_stations.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/airquality/2_scale_air_quality_feature_pipeline.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/airquality/2_scale_air_quality_feature_pipeline.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/airquality/3_scale_air_quality_training_pipeline.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/airquality/3_scale_air_quality_training_pipeline.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/airquality/4_scale_air_quality_batch_inference.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/airquality/4_scale_air_quality_batch_inference.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/airquality/4_sliding_window_air_quality_batch_inference copy.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/airquality/4_sliding_window_air_quality_batch_inference copy.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -73,6 +80,7 @@
       <workItem from="1762887640340" duration="708000" />
       <workItem from="1762931773447" duration="1478000" />
       <workItem from="1762957520479" duration="32000" />
+      <workItem from="1763304142513" duration="3315000" />
     </task>
     <servers />
   </component>
