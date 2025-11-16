@@ -58,6 +58,24 @@
     font-size: 0.8rem;
     margin-top: 0.25rem;
   }
+
+  .aq-marker {
+    background: #7c8db1;           /* azul */
+    border-radius: 999px;
+    border: 2px solid #ffffff;     /* halo blanco */
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4);
+    width: 18px;
+    height: 18px;
+    transform: translate(-9px, -9px); /* centrar en la coordenada */
+  }
+
+  .aq-marker-selected {
+    background: #32ca24;           /* rojo para seleccionado */
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.5);
+    width: 22px;
+    height: 22px;
+    transform: translate(-11px, -11px);
+  }
 </style>
 
 <h2>Monitoring Stations</h2>
@@ -103,6 +121,18 @@
   // NEW: base path for images (folders 2850, 2855, etc.)
   const imgBaseUrl = "assets/img";
 
+  // NUEVO: iconos para los pines
+  const defaultMarkerIcon = L.divIcon({
+    className: "aq-marker",
+    iconSize: [18, 18]
+  });
+
+  const selectedMarkerIcon = L.divIcon({
+    className: "aq-marker aq-marker-selected",
+    iconSize: [22, 22]
+  });
+
+
   fetch(stationsUrl)
     .then((resp) => resp.json())
     .then((stations) => {
@@ -118,6 +148,7 @@
       const select = document.getElementById("aq-station-select");
       const images = document.getElementById("aq-station-images"); // NEW
       const markersByUid = {};
+      let selectedMarker = null;
 
       function updateDetails(station) {
         details.innerHTML = `
@@ -162,23 +193,35 @@
 
       // Crea marcadores
       stations.forEach((s, index) => {
-        const marker = L.marker([s.lat, s.lon]).addTo(map);
+        const marker = L.marker([s.lat, s.lon], { icon: defaultMarkerIcon }).addTo(map);
         marker.bindPopup(`<strong>${s.name}</strong><br/>${s.street}`);
         markersByUid[s.uid] = { marker, station: s };
 
         marker.on("click", () => {
           updateDetails(s);
-          updateImages(s); // NEW
+          updateImages(s);
+
+          // actualizar dropdown
           select.value = String(s.uid);
+
+          // resaltar marcador seleccionado
+          if (selectedMarker) {
+            selectedMarker.setIcon(defaultMarkerIcon);
+          }
+          marker.setIcon(selectedMarkerIcon);
+          selectedMarker = marker;
         });
 
-        // Selecciona el primero por defecto
+        // Seleccionar el primero por defecto
         if (index === 0) {
           updateDetails(s);
-          updateImages(s); // NEW
+          updateImages(s);
           select.value = String(s.uid);
+          marker.setIcon(selectedMarkerIcon);
+          selectedMarker = marker;
         }
       });
+
 
       // Cuando el usuario cambia el select
       select.addEventListener("change", (e) => {
@@ -188,17 +231,34 @@
             <h3>No station selected</h3>
             <p>Click on any marker or use the dropdown above.</p>
           `;
-          updateImages(null); // NEW
+          updateImages(null);
+
+          // deseleccionar marcador
+          if (selectedMarker) {
+            selectedMarker.setIcon(defaultMarkerIcon);
+            selectedMarker = null;
+          }
           return;
         }
+
         const entry = markersByUid[uid];
         if (entry) {
           updateDetails(entry.station);
-          updateImages(entry.station); // NEW
+          updateImages(entry.station);
+
+          // centrar mapa + popup
           map.setView(entry.marker.getLatLng(), 13);
           entry.marker.openPopup();
+
+          // actualizar iconos
+          if (selectedMarker) {
+            selectedMarker.setIcon(defaultMarkerIcon);
+          }
+          entry.marker.setIcon(selectedMarkerIcon);
+          selectedMarker = entry.marker;
         }
       });
+
     })
     .catch((err) => {
       console.error("Error loading stations.json", err);
