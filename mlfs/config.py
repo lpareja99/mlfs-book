@@ -77,7 +77,7 @@ class HopsworksSettings(BaseSettings):
             if self.HOPSWORKS_HOST is not None:
                 os.environ['HOPSWORKS_HOST'] = self.HOPSWORKS_HOST
 
-        # --- Check required .env values ---
+        """ # --- Check required .env values ---
         missing = []
         # 1. HOPSWORKS_API_KEY
         api_key = self.HOPSWORKS_API_KEY or os.getenv("HOPSWORKS_API_KEY")
@@ -102,10 +102,10 @@ class HopsworksSettings(BaseSettings):
         # 6. AQICN_URL
         aqicn_url = self.AQICN_URL or os.getenv("AQICN_URL")
         if not aqicn_url:
-            missing.append("AQICN_URL")
+            missing.append("AQICN_URL") """
 
-        if missing:
+        """ if missing:
             raise ValueError(
                 "The following required settings are missing from your environment (.env or system):\n  " +
                 "\n  ".join(missing)
-            )    
+            ) """    
