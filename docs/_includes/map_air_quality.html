@@ -248,6 +248,7 @@
   crossorigin=""
 ></script>
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+<script src="https://unpkg.com/leaflet-windy"></script>
 
 <script>
   // Carga stations.json con fetch. Jekyll resolverá la URL correcta.
@@ -278,6 +279,17 @@
         maxZoom: 19,
         attribution: "&copy; OpenStreetMap contributors"
       }).addTo(map);
+
+      // Wind layer
+      fetch("wind.json")
+        .then(r => r.json())
+        .then(windData => {
+          const windy = L.windy({
+            map: map,
+            data: windData
+          });
+          windy.start();
+        });
 
       const details = document.getElementById("aq-station-details");
       const select = document.getElementById("aq-station-select");
