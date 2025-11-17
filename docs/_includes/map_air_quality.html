@@ -286,21 +286,30 @@
       let selectedMarker = null;
 
       // Heatmap layer from station values
-      //const values = stations.map(s => s.aqi ?? s.pm25 ?? 50); // fallback if missing
-      const values = stations.map(s => s.predicted_pm25);
+      const values = stations.map(s => s.aqi ?? s.pm25 ?? 50); // fallback if missing
+      //const values = stations.map(s => s.predicted_pm25);
       const maxValue = Math.max(...values);
 
       const heatPoints = stations.map((s, i) => {
         const v = values[i];
         // normalize 0–1 for Leaflet.heat
-        const intensity = maxValue > 0 ? v / maxValue : 0.5;
+        let intensity = maxValue > 0 ? v / maxValue : 0.5;
+        intensity = Math.sqrt(intensity); //
+
         return [s.lat, s.lon, intensity];
       });
 
       const heatLayer = L.heatLayer(heatPoints, {
-        radius: 40,
-        blur: 20,
-        maxZoom: 17
+        radius: 55,       // bigger = more “blob”
+        blur: 25,         // smoother edges
+        minOpacity: 0.4,  // don’t fade too much
+        maxZoom: 17,
+        gradient: {       // stronger colors
+          0.0: 'blue',
+          0.3: 'lime',
+          0.6: 'orange',
+          1.0: 'red'
+        }
       }).addTo(map);
 
 
