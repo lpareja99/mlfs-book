@@ -13,15 +13,6 @@ jobs:
       pages: write
       contents: write
 
-    env:
-      HOPSWORKS_API_KEY: WHEGzZQDlW94iLTy.AdD83z6aTRlRAEgHRLPflZi5XuzfydfZYHKc9zD1mHopQQyrqKHOMOUZN2qJxLW0
-      AQICN_API_KEY:    09210bb7f0477fdc41b6471eea0d6563ce6d0b16
-      AQICN_COUNTRY:    sweden
-      AQICN_CITY:       stockholm
-      AQICN_STREET:     hornsgatan-108
-      AQICN_URL:        https://api.waqi.info/feed/@10009
-
-
     steps:
       - name: checkout repo content
         uses: actions/checkout@v4
@@ -31,18 +22,6 @@ jobs:
         with:
           python-version: '3.10'
           cache: 'pip'
-
-      - name: Create .env for notebooks
-        working-directory: ${{ github.workspace }}
-        run: |
-          cat > .env <<'EOF'
-          HOPSWORKS_API_KEY=WHEGzZQDlW94iLTy.AdD83z6aTRlRAEgHRLPflZi5XuzfydfZYHKc9zD1mHopQQyrqKHOMOUZN2qJxLW0
-          AQICN_API_KEY=09210bb7f0477fdc41b6471eea0d6563ce6d0b16
-          AQICN_COUNTRY=sweden
-          AQICN_CITY=stockholm
-          AQICN_STREET=hornsgatan-108
-          AQICN_URL=https://api.waqi.info/feed/@10009
-          EOF
 
       - name: install python packages
         run: |
